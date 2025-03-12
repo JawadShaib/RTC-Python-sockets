@@ -57,7 +57,7 @@ def process_client_data(data: str):
         return
 
     with sqlite3.connect(
-            "station_data.sqlite", timeout=10, isolation_level="DEFERRED"
+        "station_data.sqlite", timeout=10, isolation_level="DEFERRED"
     ) as conn:
         cursor = conn.cursor()
         logger.info(f"Inserting Updating station {station_id} in database")

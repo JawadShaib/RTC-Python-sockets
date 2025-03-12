@@ -11,7 +11,7 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-WAIT_TIME = 12
+WAIT_TIME = 60
 
 
 def read_status_file(file_path):
@@ -57,25 +57,30 @@ def client() -> None:
     wait_time = args.wait_time
     status_file = args.status_file
     server_address = ("127.0.0.1", 65432)
-    while True:
-        station_id, alarm1, alarm2 = read_status_file(status_file)
-        if station_id is None:
-            logger.error("Failed to read status file")
-            continue
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-                logger.info("Connecting to socket....")
-                client_socket.connect(server_address)
-                data = json.dumps(
-                    {"station_id": station_id, "alarm1": alarm1, "alarm2": alarm2}
-                )
-                if data and data.strip():
-                    client_socket.sendall(data.encode("utf-8"))
-                    logger.info(f"Current Data Sent -->\t {data}")
-        except Exception as e:
-            logger.error(f"Cannot connect to socket-->{e}")
+    try:
+        while True:
+            station_id, alarm1, alarm2 = read_status_file(status_file)
+            if station_id is None:
+                logger.error("Failed to read status file")
+                time.sleep(wait_time)
+                continue
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+                    logger.info("Connecting to socket....")
+                    client_socket.connect(server_address)
+                    data = json.dumps(
+                        {"station_id": station_id, "alarm1": alarm1, "alarm2": alarm2}
+                    )
+                    if data and data.strip():
+                        client_socket.sendall(data.encode("utf-8"))
+                        logger.info(f"Current Data Sent -->\t {data}")
+            except Exception as e:
+                logger.error(f"Cannot connect to socket-->{e}")
 
-        time.sleep(wait_time)
+            time.sleep(wait_time)
+
+    except KeyboardInterrupt:
+        logger.info("Shutting down client .....")
 
 
 if __name__ == "__main__":
